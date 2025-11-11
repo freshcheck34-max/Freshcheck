@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.gms.google-services")
+//    id("com.google.gms.google-services")
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
 }
@@ -98,12 +98,12 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage")
-    implementation("com.google.firebase:firebase-database")
+//    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
+//    implementation("com.google.firebase:firebase-analytics")
+//    implementation("com.google.firebase:firebase-auth")
+//    implementation("com.google.firebase:firebase-firestore")
+//    implementation("com.google.firebase:firebase-storage")
+//    implementation("com.google.firebase:firebase-database")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.57.1")
