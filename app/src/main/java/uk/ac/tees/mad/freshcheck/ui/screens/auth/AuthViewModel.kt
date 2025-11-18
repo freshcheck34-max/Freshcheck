@@ -1,13 +1,20 @@
 package uk.ac.tees.mad.freshcheck.ui.screens.auth
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import uk.ac.tees.mad.freshcheck.data.session.SessionManager
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val auth = FirebaseAuth.getInstance()
+    private val sessionManager = SessionManager(application)
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
@@ -39,16 +46,42 @@ class AuthViewModel : ViewModel() {
             return
         }
 
-        viewModelScope.launch {
-            _uiState.value = state.copy(isLoading = true, errorMessage = null)
+        _uiState.value = state.copy(isLoading = true, errorMessage = null)
 
-            // Fake delay for now
-            delay(1200)
+        if (state.isLoginMode)
+            login(state.email, state.password, onSuccess)
+        else
+            signup(state.email, state.password, onSuccess)
+    }
 
-            _uiState.value = _uiState.value.copy(isLoading = false)
+    private fun login(email: String, password: String, onSuccess: () -> Unit) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnSuccessListener {
+                val uid = auth.currentUser?.uid ?: ""
+                viewModelScope.launch { sessionManager.saveUserId(uid) }
 
-            onSuccess()
-        }
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                onSuccess()
+            }
+            .addOnFailureListener {
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                setError(it.message ?: "Login failed.")
+            }
+    }
+
+    private fun signup(email: String, password: String, onSuccess: () -> Unit) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnSuccessListener {
+                val uid = auth.currentUser?.uid ?: ""
+                viewModelScope.launch { sessionManager.saveUserId(uid) }
+
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                onSuccess()
+            }
+            .addOnFailureListener {
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                setError(it.message ?: "Signup failed.")
+            }
     }
 
     private fun setError(msg: String) {
