@@ -5,16 +5,19 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import uk.ac.tees.mad.freshcheck.data.session.SessionManager
+import javax.inject.Inject
 
-class AuthViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val auth = FirebaseAuth.getInstance()
-    private val sessionManager = SessionManager(application)
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val auth: FirebaseAuth,
+    private val sessionManager: SessionManager
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
@@ -85,6 +88,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun setError(msg: String) {
-        _uiState.value = _uiState.value.copy(errorMessage = msg)
-    }
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            errorMessage = msg
+        )    }
 }

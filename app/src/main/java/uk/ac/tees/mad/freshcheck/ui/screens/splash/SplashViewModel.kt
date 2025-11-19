@@ -2,17 +2,21 @@ package uk.ac.tees.mad.freshcheck.ui.screens.splash
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import uk.ac.tees.mad.freshcheck.data.session.SessionManager
+import javax.inject.Inject
 
-class SplashViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val sessionManager = SessionManager(application)
+@HiltViewModel
+class SplashViewModel @Inject constructor(
+    private val sessionManager: SessionManager
+) : ViewModel() {
 
     private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
     val isLoggedIn = _isLoggedIn.asStateFlow()
