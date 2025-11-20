@@ -14,13 +14,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import uk.ac.tees.mad.freshcheck.ui.screens.splash.SplashScreen
-import uk.ac.tees.mad.freshcheck.ui.screens.auth.AuthScreen
-import uk.ac.tees.mad.freshcheck.ui.screens.home.HomeScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.addedit.AddEditFoodScreen
-import uk.ac.tees.mad.freshcheck.ui.screens.detail.FoodDetailScreen
-import uk.ac.tees.mad.freshcheck.ui.screens.settings.SettingsScreen
+import uk.ac.tees.mad.freshcheck.ui.screens.auth.AuthScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.camera.CameraCaptureScreen
+import uk.ac.tees.mad.freshcheck.ui.screens.detail.FoodDetailScreen
+import uk.ac.tees.mad.freshcheck.ui.screens.home.HomeScreen
+import uk.ac.tees.mad.freshcheck.ui.screens.settings.SettingsScreen
+import uk.ac.tees.mad.freshcheck.ui.screens.splash.SplashScreen
 
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable

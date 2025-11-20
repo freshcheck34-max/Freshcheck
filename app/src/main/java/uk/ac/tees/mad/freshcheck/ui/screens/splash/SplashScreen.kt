@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uk.ac.tees.mad.freshcheck.ui.theme.FreshCheckTheme
 
@@ -21,7 +22,7 @@ import uk.ac.tees.mad.freshcheck.ui.theme.FreshCheckTheme
 fun SplashScreen(
     goToAuth: () -> Unit,
     goToHome: () -> Unit,
-    viewModel: SplashViewModel = viewModel()
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 

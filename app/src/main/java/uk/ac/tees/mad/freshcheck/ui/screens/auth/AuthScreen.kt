@@ -22,11 +22,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import uk.ac.tees.mad.freshcheck.ui.theme.FreshCheckTheme
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun AuthScreen(
     onSuccess: () -> Unit,
-    viewModel: AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val state = viewModel.uiState.collectAsState().value
 

@@ -1,7 +1,5 @@
 package uk.ac.tees.mad.freshcheck.ui.screens.splash
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,10 +25,8 @@ class SplashViewModel @Inject constructor(
 
     private fun runStartupChecks() {
         viewModelScope.launch {
-
-            delay(1500) // simulate reading session storage
+            delay(1500)
             val uid = sessionManager.userId.first()
-
             _isLoggedIn.value = uid != null
         }
     }

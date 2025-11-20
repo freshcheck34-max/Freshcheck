@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uk.ac.tees.mad.freshcheck.data.session.SessionManager
 import javax.inject.Singleton
@@ -14,6 +15,6 @@ object SessionModule {
 
     @Provides
     @Singleton
-    fun provideSessionManager(context: Context): SessionManager =
+    fun provideSessionManager(@ApplicationContext context: Context): SessionManager =
         SessionManager(context)
 }
