@@ -45,7 +45,7 @@ fun NavGraph(
                     }
                 },
                 goToHome = {
-                    navController.navigate(Routes.HOME) {
+                    navController.navigate(Routes.ADD_ITEM) {
                         popUpTo(0)
                     }
                 }
@@ -93,35 +93,33 @@ fun NavGraph(
                 ?: remember { mutableStateOf(null) }
 
             AddEditFoodScreen(
-//                itemId = null,
-//                imagePath = image,
-//                onBack = { navController.popBackStack() },
-//                onSave = { navController.popBackStack() },
-//                onAddPhoto = {
-//                    navController.navigate(Routes.CAMERA)
-//                }
+                onBack = { navController.popBackStack() },
+                onSave = { navController.popBackStack() },
+                onAddPhoto = {
+                    navController.navigate(Routes.CAMERA)
+                }
             )
         }
 
         // ------------------------------------------------------
         // Edit Item Screen
         // ------------------------------------------------------
-        composable(
-            route = Routes.EDIT_ITEM,
-            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
-        ) { backStack ->
-            val id = backStack.arguments?.getString("itemId") ?: ""
-
-            AddEditFoodScreen(
-//                itemId = id,
-//                imagePath = null,
-//                onBack = { navController.popBackStack() },
-//                onSave = { navController.popBackStack() },
-//                onAddPhoto = {
-//                    navController.navigate(Routes.CAMERA)
-//                }
-            )
-        }
+//        composable(
+//            route = Routes.EDIT_ITEM,
+//            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+//        ) { backStack ->
+//            val id = backStack.arguments?.getString("itemId") ?: ""
+//
+//            AddEditFoodScreen(
+////                itemId = id,
+////                imagePath = null,
+////                onBack = { navController.popBackStack() },
+////                onSave = { navController.popBackStack() },
+////                onAddPhoto = {
+////                    navController.navigate(Routes.CAMERA)
+////                }
+//            )
+//        }
 
         // ------------------------------------------------------
         // Food Detail Screen
