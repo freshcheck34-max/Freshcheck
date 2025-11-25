@@ -156,16 +156,16 @@ fun NavGraph(
         // ------------------------------------------------------
         composable(Routes.CAMERA) {
             CameraCaptureScreen(
-//                onCaptured = { path ->
-//                    navController.previousBackStackEntry
-//                        ?.savedStateHandle
-//                        ?.set("image", path)
-//
-//                    navController.popBackStack()
-//                },
-//                onCancel = {
-//                    navController.popBackStack()
-//                }
+                onCaptured = { path ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("image", path)
+
+                    navController.popBackStack()
+                },
+                onCancel = {
+                    navController.popBackStack()
+                }
             )
         }
     }
