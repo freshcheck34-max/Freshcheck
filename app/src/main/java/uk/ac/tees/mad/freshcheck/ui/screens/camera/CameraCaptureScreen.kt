@@ -1,5 +1,6 @@
 package uk.ac.tees.mad.freshcheck.ui.screens.camera
 
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Log
@@ -11,7 +12,6 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -55,64 +56,60 @@ fun CameraCaptureScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var hasPermission by remember { mutableStateOf(false) }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasPermission = granted
-    }
-
-    LaunchedEffect(Unit) {
-        hasPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!hasPermission) {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
-
-    // Camera objects
-    val previewView = remember { PreviewView(context) }
-    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
-
-    // Captured file path
-    var capturedImagePath by remember { mutableStateOf<String?>(null) }
-
-    // Start camera when permission granted
-    LaunchedEffect(hasPermission) {
-        if (!hasPermission) return@LaunchedEffect
-
-        val cameraProvider = ProcessCameraProvider.getInstance(context).get()
-        val preview = androidx.camera.core.Preview.Builder().build().also {
-            it.setSurfaceProvider(previewView.surfaceProvider)
-        }
-
-        val capture = ImageCapture.Builder().build()
-        imageCapture = capture
-
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-        cameraProvider.unbindAll()
-        cameraProvider.bindToLifecycle(
-            lifecycleOwner,
-            cameraSelector,
-            preview,
-            capture
+    var hasPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
         )
     }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+            hasPermission = it
+        }
 
     if (!hasPermission) {
-        Text(
-            "Camera permission required",
-//            color = Color.White,
-            modifier = Modifier.padding(20.dp)
-        )
+        LaunchedEffect(Unit) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
         return
     }
 
-    // If an image is captured -> show preview
+    // Camera components
+    val previewView = remember {
+        PreviewView(context).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    var capturedImagePath by remember { mutableStateOf<String?>(null) }
+
+    // Bind camera when composable enters composition
+    LaunchedEffect(Unit) {
+        val cameraProvider = ProcessCameraProvider.getInstance(context).get()
+
+        val preview = androidx.camera.core.Preview.Builder().build().apply {
+            setSurfaceProvider(previewView.surfaceProvider)
+        }
+
+        imageCapture = ImageCapture.Builder().build()
+
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+        try {
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                cameraSelector,
+                preview,
+                imageCapture
+            )
+        } catch (e: Exception) {
+            Log.e("CameraX", "Binding failed", e)
+        }
+    }
+
+    // If user took a photo -> show REVIEW SCREEN
     if (capturedImagePath != null) {
         ReviewCapturedImage(
             path = capturedImagePath!!,
@@ -122,10 +119,9 @@ fun CameraCaptureScreen(
         return
     }
 
-    // Camera preview + shutter button
-    Box(modifier = Modifier.fillMaxSize().padding(20.dp)) {
+    // LIVE PREVIEW SCREEN
+    Box(modifier = Modifier.fillMaxSize()) {
 
-        // Camera preview box
         AndroidView(
             factory = { previewView },
             modifier = Modifier
@@ -133,41 +129,41 @@ fun CameraCaptureScreen(
                 .padding(20.dp)
                 .height(420.dp)
                 .clip(RoundedCornerShape(20.dp))
-//                .background(Color.Black)
                 .align(Alignment.TopCenter)
         )
-        // CANCEL (bottom-left)
+
+        // Cancel button
         OutlinedButton(
             onClick = onCancel,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-//                .padding(30.dp)
+                .padding(30.dp)
         ) {
             Text("Cancel")
         }
 
-        // Shutter button
+        // Capture button
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(Color.Black)
+                .background(Color.White)
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 60.dp)
+                .padding(bottom = 50.dp)
                 .clickable {
-                    val photoFile = CameraFileUtils.createImageFile(context)
-                    val output = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+                    val file = CameraFileUtils.createImageFile(context)
+                    val output = ImageCapture.OutputFileOptions.Builder(file).build()
 
                     imageCapture?.takePicture(
                         output,
                         ContextCompat.getMainExecutor(context),
                         object : ImageCapture.OnImageSavedCallback {
-                            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                                capturedImagePath = photoFile.absolutePath
+                            override fun onImageSaved(result: ImageCapture.OutputFileResults) {
+                                capturedImagePath = file.absolutePath
                             }
 
                             override fun onError(exception: ImageCaptureException) {
-                                Log.e("Camera", "Error: ${exception.message}")
+                                Log.e("CameraX", "Capture failed", exception)
                             }
                         }
                     )
@@ -175,7 +171,6 @@ fun CameraCaptureScreen(
         )
     }
 }
-
 
 @Composable
 fun ReviewCapturedImage(
@@ -198,27 +193,24 @@ fun ReviewCapturedImage(
                 .clip(RoundedCornerShape(20.dp))
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(Modifier.height(20.dp))
 
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth()) {
             OutlinedButton(
                 onClick = onRetake,
                 modifier = Modifier.weight(1f)
-            ) {
-                Text("Retake")
-            }
+            ) { Text("Retake") }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(Modifier.width(16.dp))
 
             Button(
                 onClick = onSave,
                 modifier = Modifier.weight(1f)
-            ) {
-                Text("Save")
-            }
+            ) { Text("Save") }
         }
     }
 }
+
 
 @Composable
 fun CameraCaptureScreenPreviewContent(
@@ -263,6 +255,7 @@ fun CameraCaptureScreenPreviewContent(
         )
     }
 }
+
 @Preview(showSystemUi = true)
 @Composable
 fun CameraCaptureScreen_Preview() {

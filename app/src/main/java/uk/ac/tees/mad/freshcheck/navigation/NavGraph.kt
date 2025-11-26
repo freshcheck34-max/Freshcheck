@@ -5,16 +5,14 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import uk.ac.tees.mad.freshcheck.ui.screens.addedit.AddEditFoodScreen
+import uk.ac.tees.mad.freshcheck.ui.screens.addedit.AddEditFoodViewModel
 import uk.ac.tees.mad.freshcheck.ui.screens.auth.AuthScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.camera.CameraCaptureScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.detail.FoodDetailScreen
@@ -85,21 +83,27 @@ fun NavGraph(
         // ------------------------------------------------------
         // Add Item Screen
         // ------------------------------------------------------
-        composable(Routes.ADD_ITEM) {
-            val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+        composable(Routes.ADD_ITEM) { backStackEntry ->
+            val viewModel: AddEditFoodViewModel = hiltViewModel()
+
+            val savedStateHandle = backStackEntry.savedStateHandle
+
             val image by savedStateHandle
-                ?.getStateFlow<String?>("image", null)
-                ?.collectAsState()
-                ?: remember { mutableStateOf(null) }
+                .getStateFlow<String?>("image", null)
+                .collectAsState()
+
+            if (image != null) {
+                viewModel.onImageSelected(image)
+            }
 
             AddEditFoodScreen(
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onSave = { navController.popBackStack() },
-                onAddPhoto = {
-                    navController.navigate(Routes.CAMERA)
-                }
+                onAddPhoto = { navController.navigate(Routes.CAMERA) }
             )
         }
+
 
         // ------------------------------------------------------
         // Edit Item Screen
