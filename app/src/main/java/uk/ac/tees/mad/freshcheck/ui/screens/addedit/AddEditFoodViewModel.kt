@@ -23,10 +23,11 @@ class AddEditFoodViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun saveItem(userId: String, onSaved: () -> Unit) {
+    fun save(userId: String, onSaved: () -> Unit) {
         val state = _uiState.value
-        if (state.name.isBlank() || state.expiryDate == null || state.category.isBlank()) {
-            _uiState.value = state.copy(error = "All fields are required.")
+
+        if (state.name.isBlank() || state.category.isBlank() || state.expiryDate == null) {
+            _uiState.value = state.copy(error = "All fields are required")
             return
         }
 
@@ -38,9 +39,9 @@ class AddEditFoodViewModel @Inject constructor(
                 name = state.name,
                 category = state.category,
                 addedDate = LocalDate.now(),
-                expiryDate = state.expiryDate,
-                imageUrl = null,
-                localImagePath = state.imagePath,   // local photo path
+                expiryDate = state.expiryDate!!,
+                imageUrl = null,              // Cloudinary will fill this
+                localImagePath = state.imagePath,
                 consumed = false,
                 userId = userId
             )
@@ -52,23 +53,20 @@ class AddEditFoodViewModel @Inject constructor(
         }
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun initForEdit(
-        id: String,
-        name: String,
-        category: String,
-        expiryDate: String,
-        imageUrl: String?
-    ) {
-        _uiState.value = AddEditFoodUiState(
-            id = id,
-            name = name,
-            category = category,
-            expiryDate = java.time.LocalDate.parse(expiryDate),
-            imagePath = imageUrl,
-            isEditing = true
-        )
+    fun loadItem(itemId: String, userId: String) {
+        viewModelScope.launch {
+            val item = repository.getItemById(itemId)
+            if (item != null) {
+                _uiState.value = AddEditFoodUiState(
+                    id = item.id,
+                    name = item.name,
+                    category = item.category,
+                    expiryDate = item.expiryDate,
+                    imagePath = item.localImagePath ?: item.imageUrl,
+                    isEditing = true
+                )
+            }
+        }
     }
 
     fun onNameChange(value: String) {

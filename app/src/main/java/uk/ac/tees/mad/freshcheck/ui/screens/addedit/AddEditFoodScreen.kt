@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,16 +18,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.firebase.auth.FirebaseAuth
 import uk.ac.tees.mad.freshcheck.ui.components.CategoryDropdown
 import uk.ac.tees.mad.freshcheck.ui.components.ExpiryDatePicker
 import uk.ac.tees.mad.freshcheck.ui.components.PhotoPickerSection
@@ -36,11 +42,30 @@ import uk.ac.tees.mad.freshcheck.ui.theme.FreshCheckTheme
 @Composable
 fun AddEditFoodScreen(
     viewModel: AddEditFoodViewModel = hiltViewModel(),
+    itemId: String?,
+    imagePath: String?,
     onBack: () -> Unit,
     onSave: () -> Unit,
-    onAddPhoto: () -> Unit
+    onAddPhoto: () -> Unit,
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
+
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+    // Load item if editing
+    LaunchedEffect(itemId) {
+        if (itemId != null) {
+            viewModel.loadItem(itemId, userId)
+        }
+    }
+
+    // Update image when coming back from camera
+    LaunchedEffect (imagePath) {
+        if (imagePath != null) {
+            viewModel.onImageSelected(imagePath)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -59,7 +84,7 @@ fun AddEditFoodScreen(
     ) { padding ->
 
         Column(
-            Modifier
+            modifier = Modifier
                 .padding(padding)
                 .padding(20.dp)
         ) {
@@ -95,10 +120,20 @@ fun AddEditFoodScreen(
             Spacer(Modifier.height(32.dp))
 
             Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onSave
+                onClick = {
+                    viewModel.save(userId) { onSave() }
+                },
+                enabled = !state.loading,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (state.isEditing) "Save Changes" else "Add Item")
+                if (state.loading)
+                    CircularProgressIndicator(Modifier.size(20.dp))
+                else
+                    Text(if (itemId == null) "Add Item" else "Save")
+            }
+            if (state.error != null) {
+                Spacer(Modifier.height(10.dp))
+                Text(state.error!!, color = Color.Red)
             }
         }
     }

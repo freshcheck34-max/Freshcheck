@@ -8,9 +8,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import uk.ac.tees.mad.freshcheck.ui.screens.addedit.AddEditFoodScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.addedit.AddEditFoodViewModel
 import uk.ac.tees.mad.freshcheck.ui.screens.auth.AuthScreen
@@ -43,7 +45,7 @@ fun NavGraph(
                     }
                 },
                 goToHome = {
-                    navController.navigate(Routes.ADD_ITEM) {
+                    navController.navigate(Routes.HOME) {
                         popUpTo(0)
                     }
                 }
@@ -97,6 +99,8 @@ fun NavGraph(
             }
 
             AddEditFoodScreen(
+                itemId = null,
+                imagePath = image,
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onSave = { navController.popBackStack() },
@@ -108,22 +112,22 @@ fun NavGraph(
         // ------------------------------------------------------
         // Edit Item Screen
         // ------------------------------------------------------
-//        composable(
-//            route = Routes.EDIT_ITEM,
-//            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
-//        ) { backStack ->
-//            val id = backStack.arguments?.getString("itemId") ?: ""
-//
-//            AddEditFoodScreen(
-////                itemId = id,
-////                imagePath = null,
-////                onBack = { navController.popBackStack() },
-////                onSave = { navController.popBackStack() },
-////                onAddPhoto = {
-////                    navController.navigate(Routes.CAMERA)
-////                }
-//            )
-//        }
+        composable(
+            route = Routes.EDIT_ITEM,
+            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+        ) { backStack ->
+            val itemId = backStack.arguments?.getString("itemId") ?: ""
+
+            AddEditFoodScreen(
+                itemId = itemId,
+                onBack = { navController.popBackStack() },
+                onSave = { navController.popBackStack() },
+                onAddPhoto = { navController.navigate(Routes.CAMERA) },
+                viewModel = TODO(),
+                imagePath = TODO()
+            )
+        }
+
 
         // ------------------------------------------------------
         // Food Detail Screen
