@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,6 +57,7 @@ class AddEditFoodViewModel @Inject constructor(
     fun loadItem(itemId: String, userId: String) {
         viewModelScope.launch {
             val item = repository.getItemById(itemId)
+            val userId = FirebaseAuth.getInstance().currentUser!!.uid
             if (item != null) {
                 _uiState.value = AddEditFoodUiState(
                     id = item.id,

@@ -78,6 +78,9 @@ fun NavGraph(
 //                },
                 onOpenSettings = {
                     navController.navigate(Routes.SETTINGS)
+                },
+                onOpenItem =  { id ->
+                    navController.navigate("detail_item/$id")
                 }
             )
         }
@@ -117,14 +120,23 @@ fun NavGraph(
             arguments = listOf(navArgument("itemId") { type = NavType.StringType })
         ) { backStack ->
             val itemId = backStack.arguments?.getString("itemId") ?: ""
+            val savedStateHandle = backStack.savedStateHandle
+            val image by savedStateHandle
+                .getStateFlow<String?>("image", null)
+                .collectAsState()
+
+            val viewModel: AddEditFoodViewModel = hiltViewModel()
+
+            if (image != null) {
+                viewModel.onImageSelected(image)
+            }
 
             AddEditFoodScreen(
                 itemId = itemId,
                 onBack = { navController.popBackStack() },
                 onSave = { navController.popBackStack() },
                 onAddPhoto = { navController.navigate(Routes.CAMERA) },
-                viewModel = TODO(),
-                imagePath = TODO()
+                imagePath = image
             )
         }
 
