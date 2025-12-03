@@ -34,9 +34,7 @@ fun NavGraph(
         modifier = modifier
     ) {
 
-        // ------------------------------------------------------
         // Splash Screen
-        // ------------------------------------------------------
         composable(Routes.SPLASH) {
             SplashScreen(
                 goToAuth = {
@@ -52,9 +50,7 @@ fun NavGraph(
             )
         }
 
-        // ------------------------------------------------------
         // Authentication Screen
-        // ------------------------------------------------------
         composable(Routes.AUTH) {
             AuthScreen(
                 onSuccess = {
@@ -65,9 +61,7 @@ fun NavGraph(
             )
         }
 
-        // ------------------------------------------------------
         // Home / Fridge List Screen
-        // ------------------------------------------------------
         composable(Routes.HOME) {
             HomeScreen(
                 onAddItem = {
@@ -85,9 +79,7 @@ fun NavGraph(
             )
         }
 
-        // ------------------------------------------------------
         // Add Item Screen
-        // ------------------------------------------------------
         composable(Routes.ADD_ITEM) { backStackEntry ->
             val viewModel: AddEditFoodViewModel = hiltViewModel()
 
@@ -112,9 +104,7 @@ fun NavGraph(
         }
 
 
-        // ------------------------------------------------------
         // Edit Item Screen
-        // ------------------------------------------------------
         composable(
             route = Routes.EDIT_ITEM,
             arguments = listOf(navArgument("itemId") { type = NavType.StringType })
@@ -141,9 +131,7 @@ fun NavGraph(
         }
 
 
-        // ------------------------------------------------------
         // Food Detail Screen
-        // ------------------------------------------------------
         composable(
             route = Routes.DETAIL_ITEM,
         ) { backStack ->
@@ -157,9 +145,7 @@ fun NavGraph(
             )
         }
 
-        // ------------------------------------------------------
         // Settings Screen
-        // ------------------------------------------------------
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
@@ -171,9 +157,7 @@ fun NavGraph(
             )
         }
 
-        // ------------------------------------------------------
         // Camera Screen
-        // ------------------------------------------------------
         composable(Routes.CAMERA) {
             CameraCaptureScreen(
                 onCaptured = { path ->

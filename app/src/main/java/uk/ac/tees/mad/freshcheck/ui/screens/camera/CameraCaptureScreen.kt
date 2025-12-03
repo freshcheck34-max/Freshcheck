@@ -109,7 +109,6 @@ fun CameraCaptureScreen(
         }
     }
 
-    // If user took a photo -> show REVIEW SCREEN
     if (capturedImagePath != null) {
         ReviewCapturedImage(
             path = capturedImagePath!!,
