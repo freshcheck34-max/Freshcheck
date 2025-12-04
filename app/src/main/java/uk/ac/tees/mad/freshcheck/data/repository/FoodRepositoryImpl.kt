@@ -34,22 +34,40 @@ class FoodRepositoryImpl @Inject constructor(
         foodDao.getItemById(id)?.toDomain()
 
     override suspend fun addOrUpdateItem(item: FoodItem) {
-        Log.d("Repository", "Saving item: $item")
+        withContext(Dispatchers.IO) {
+            try {
+                Log.d("Repository", "Saving item: $item")
 
-        var updatedItem = item
+                var updatedItem = item
 
-        if (item.localImagePath != null && (item.imageUrl == null)) {
-            Log.d("Repository", "Uploading image to Cloudinary...")
+                // If there's a local image and no remote url, try upload
+                if (!item.localImagePath.isNullOrBlank() && item.imageUrl.isNullOrBlank()) {
+                    Log.d("Repository", "Uploading image to Cloudinary: ${item.localImagePath}")
+                    val url = try {
+                        cloudinary.uploadImage(item.localImagePath)
+                    } catch (e: Exception) {
+                        Log.e("Repository", "Cloudinary upload failed", e)
+                        ""
+                    }
 
-            val url = cloudinary.uploadImage(item.localImagePath)
-            Log.d("Repository", "Cloudinary returned: $url")
+                    Log.d("Repository", "Cloudinary returned: $url")
 
-            updatedItem = updatedItem.copy(imageUrl = url)
+                    if (!url.isNullOrBlank()) {
+                        updatedItem = updatedItem.copy(imageUrl = url)
+
+                    }
+                }
+
+                foodDao.insertFood(updatedItem.toEntity())
+                Log.d("Repository", "Saved to ROOM: ${updatedItem.toEntity()}")
+
+                syncSingle(updatedItem)
+                Log.d("Repository", "Synced to Firestore: ${updatedItem.id}")
+
+            } catch (e: Exception) {
+                Log.e("Repository", "Error in addOrUpdateItem", e)
+            }
         }
-        foodDao.insertFood(item.toEntity())
-        Log.d("Repository", "Saved to ROOM: ${updatedItem.toEntity()}")
-
-        syncSingle(item)
     }
 
     override suspend fun deleteItem(item: FoodItem) {

@@ -18,6 +18,7 @@ import uk.ac.tees.mad.freshcheck.ui.screens.addedit.AddEditFoodViewModel
 import uk.ac.tees.mad.freshcheck.ui.screens.auth.AuthScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.camera.CameraCaptureScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.detail.FoodDetailScreen
+import uk.ac.tees.mad.freshcheck.ui.screens.detail.FoodDetailViewModel
 import uk.ac.tees.mad.freshcheck.ui.screens.home.HomeScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.settings.SettingsScreen
 import uk.ac.tees.mad.freshcheck.ui.screens.splash.SplashScreen
@@ -134,14 +135,24 @@ fun NavGraph(
         // Food Detail Screen
         composable(
             route = Routes.DETAIL_ITEM,
+            arguments = listOf(
+                navArgument("itemId") { type = NavType.StringType }
+            )
         ) { backStack ->
             val id = backStack.arguments?.getString("itemId") ?: ""
+            val detailViewModel: FoodDetailViewModel = hiltViewModel()
             FoodDetailScreen(
-//                id = id,
-//                onBack = { navController.popBackStack() },
-//                onEdit = {
-//                    navController.navigate("edit_item/$id")
-//                }
+                id = id,
+                onBack = { navController.popBackStack() },
+                onEdit = {
+                    navController.navigate("edit_item/$id")
+                },
+                onDeleteRequested = { food ->
+                    navController.popBackStack()
+                },
+                onMarkConsumedRequested = { food ->
+                    navController.popBackStack()
+                }
             )
         }
 
