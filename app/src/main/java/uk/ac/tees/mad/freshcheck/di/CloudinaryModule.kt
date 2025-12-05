@@ -4,22 +4,42 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import uk.ac.tees.mad.freshcheck.data.remote.CloudinaryApi
 import uk.ac.tees.mad.freshcheck.data.remote.CloudinaryDataSource
-import uk.ac.tees.mad.freshcheck.data.remote.CloudinaryService
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object CloudinaryModule {
 
-    @Provides
-    @Singleton
-    fun provideCloudinaryApi(): CloudinaryApi =
-        CloudinaryService.create()
+    private const val CLOUD_NAME = "dmgwqrc5b"
+    private const val BASE = "https://api.cloudinary.com/v1_1/$CLOUD_NAME/"
+    private const val API_KEY = "176314437958328"
+    private const val API_SECRET = "Vd4ZdDCK8P7NidAmCy0N5VMndA8"
 
     @Provides
     @Singleton
-    fun provideCloudinaryDataSource(api: CloudinaryApi): CloudinaryDataSource =
-        CloudinaryDataSource(api)
+    fun provideOkHttpClient(): OkHttpClient =
+        OkHttpClient.Builder().build()
+
+    @Provides
+    @Singleton
+    fun provideCloudinaryApi(client: OkHttpClient): CloudinaryApi {
+        return Retrofit.Builder()
+            .baseUrl(BASE)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(CloudinaryApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCloudinaryDataSource(
+        api: CloudinaryApi,
+        client: OkHttpClient
+    ): CloudinaryDataSource = CloudinaryDataSource(api, client, CLOUD_NAME, API_KEY, API_SECRET)
 }

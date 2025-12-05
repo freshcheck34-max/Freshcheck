@@ -7,5 +7,6 @@ import java.time.LocalDate
 data class FoodDetailUiState(
     val item: FoodItem? = null,
     val loading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val deleted: Boolean = false
 )

@@ -1,7 +1,6 @@
 package uk.ac.tees.mad.freshcheck.data.repository
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +15,6 @@ import uk.ac.tees.mad.freshcheck.domain.model.FoodItem
 import uk.ac.tees.mad.freshcheck.domain.model.toDomain
 import uk.ac.tees.mad.freshcheck.domain.model.toEntity
 import uk.ac.tees.mad.freshcheck.domain.repository.FoodRepository
-import java.time.LocalDate
 import javax.inject.Inject
 
 class FoodRepositoryImpl @Inject constructor(
@@ -26,86 +24,73 @@ class FoodRepositoryImpl @Inject constructor(
 ) : FoodRepository {
 
     override fun getAllItems(userId: String): Flow<List<FoodItem>> =
-        foodDao.getActiveItems(userId).map { list ->
-            list.map { it.toDomain() }
-        }
+        foodDao.getActiveItems(userId).map { it.map { e -> e.toDomain() } }
 
     override suspend fun getItemById(id: String): FoodItem? =
         foodDao.getItemById(id)?.toDomain()
 
     override suspend fun addOrUpdateItem(item: FoodItem) {
-        withContext(Dispatchers.IO) {
-            try {
-                Log.d("Repository", "Saving item: $item")
+        var updated = item
 
-                var updatedItem = item
-
-                // If there's a local image and no remote url, try upload
-                if (!item.localImagePath.isNullOrBlank() && item.imageUrl.isNullOrBlank()) {
-                    Log.d("Repository", "Uploading image to Cloudinary: ${item.localImagePath}")
-                    val url = try {
-                        cloudinary.uploadImage(item.localImagePath)
-                    } catch (e: Exception) {
-                        Log.e("Repository", "Cloudinary upload failed", e)
-                        ""
-                    }
-
-                    Log.d("Repository", "Cloudinary returned: $url")
-
-                    if (!url.isNullOrBlank()) {
-                        updatedItem = updatedItem.copy(imageUrl = url)
-
-                    }
-                }
-
-                foodDao.insertFood(updatedItem.toEntity())
-                Log.d("Repository", "Saved to ROOM: ${updatedItem.toEntity()}")
-
-                syncSingle(updatedItem)
-                Log.d("Repository", "Synced to Firestore: ${updatedItem.id}")
-
-            } catch (e: Exception) {
-                Log.e("Repository", "Error in addOrUpdateItem", e)
+        // Upload only when needed
+        if (!item.localImagePath.isNullOrBlank() && item.imageUrl.isNullOrBlank()) {
+            val url = cloudinary.uploadImage(item.localImagePath)
+            if (url.isNotBlank()) {
+                updated = updated.copy(imageUrl = url)
             }
         }
+
+        // Save to Room
+        foodDao.insertFood(updated.toEntity())
+
+        // Sync to Firestore (best-effort)
+        syncSingle(updated)
     }
 
     override suspend fun deleteItem(item: FoodItem) {
-        // Local delete
-        foodDao.deleteFood(item.toEntity())
+        // best-effort cloud delete
+        item.imageUrl?.let { cloudinary.deleteImageByUrl(it) }
 
-        // Remote delete
-        val ref = firestore
-            .collection("users")
+        // best-effort Firestore delete
+        firestore.collection("users")
             .document(item.userId)
             .collection("food_items")
             .document(item.id)
+            .delete()
 
-        ref.delete().addOnFailureListener { /* worker handles retry */ }
+        // delete local
+        withContext(Dispatchers.IO) {
+            foodDao.deleteFood(item.toEntity())
+        }
     }
 
     override suspend fun markConsumed(id: String) {
         foodDao.markConsumed(id)
         val local = foodDao.getItemById(id) ?: return
-        syncSingle(local.toDomain())
+
+        firestore.collection("users")
+            .document(local.userId)
+            .collection("food_items")
+            .document(id)
+            .update("consumed", true)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun syncUserData(userId: String) {
-        val ref = firestore
-            .collection("users")
+        val ref = firestore.collection("users")
             .document(userId)
             .collection("food_items")
+
         val snapshot = ref.get().await()
 
-        val remoteItems = snapshot.documents.mapNotNull { doc ->
+        val remote = snapshot.documents.mapNotNull { doc ->
             try {
                 FoodItemEntity(
                     id = doc.id,
                     name = doc.getString("name") ?: return@mapNotNull null,
                     category = doc.getString("category") ?: "",
-                    addedDate = LocalDate.parse(doc.getString("addedDate")),
-                    expiryDate = LocalDate.parse(doc.getString("expiryDate")),
+                    addedDate = java.time.LocalDate.parse(doc.getString("addedDate")),
+                    expiryDate = java.time.LocalDate.parse(doc.getString("expiryDate")),
                     imageUrl = doc.getString("imageUrl"),
                     localImagePath = null,
                     consumed = doc.getBoolean("consumed") ?: false,
@@ -117,31 +102,25 @@ class FoodRepositoryImpl @Inject constructor(
         }
 
         withContext(Dispatchers.IO) {
-            remoteItems.forEach { item ->
-                foodDao.insertFood(item)
-            }
+            remote.forEach { foodDao.insertFood(it) }
         }
     }
 
     private fun syncSingle(item: FoodItem) {
-        val ref = firestore
-            .collection("users")
+        val ref = firestore.collection("users")
             .document(item.userId)
             .collection("food_items")
             .document(item.id)
 
-        val data = mapOf(
-            "name" to item.name,
-            "category" to item.category,
-            "addedDate" to item.addedDate.toString(),
-            "expiryDate" to item.expiryDate.toString(),
-            "imageUrl" to item.imageUrl,
-            "consumed" to item.consumed
+        ref.set(
+            mapOf(
+                "name" to item.name,
+                "category" to item.category,
+                "addedDate" to item.addedDate.toString(),
+                "expiryDate" to item.expiryDate.toString(),
+                "imageUrl" to item.imageUrl,
+                "consumed" to item.consumed
+            )
         )
-
-        ref.set(data)
-        Log.d("Firestore", "Syncing item to Firestore: ${item.id}")
-
-
     }
 }
