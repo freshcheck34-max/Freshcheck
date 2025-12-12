@@ -1,19 +1,43 @@
 package uk.ac.tees.mad.freshcheck.ui.screens.detail
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
@@ -48,7 +72,10 @@ fun FoodDetailScreen(
                 title = { Text(item?.name ?: "Item") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(painterResource(id = android.R.drawable.ic_menu_close_clear_cancel), null)
+                        Icon(
+                            painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
+                            null
+                        )
                     }
                 },
                 actions = {
@@ -135,8 +162,16 @@ fun FoodDetailScreen(
                 Spacer(Modifier.height(12.dp))
 
                 // Name & category
-                Text(food.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Text(food.category, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    food.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    food.category,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
                 Spacer(Modifier.height(12.dp))
 
@@ -172,11 +207,13 @@ fun FoodDetailScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     OutlinedButton(onClick = {
-                        val shareText = "${food.name} expires ${when {
-                            daysLeft < 0 -> "${-daysLeft} day(s) ago"
-                            daysLeft == 0L -> "today"
-                            else -> "in $daysLeft day(s)"
-                        }}"
+                        val shareText = "${food.name} expires ${
+                            when {
+                                daysLeft < 0 -> "${-daysLeft} day(s) ago"
+                                daysLeft == 0L -> "today"
+                                else -> "in $daysLeft day(s)"
+                            }
+                        }"
                         val intent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_TEXT, shareText)
@@ -195,4 +232,111 @@ fun FoodDetailScreen(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun FoodDetailScreen_UIOnly(item: FoodItem) {
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(item.name) }
+            )
+        },
+        bottomBar = {
+            BottomAppBar(contentPadding = PaddingValues(12.dp)) {
+                Button(
+                    onClick = {},
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                ) { Text("Mark as Consumed") }
+
+                Spacer(Modifier.width(12.dp))
+
+                OutlinedButton(
+                    onClick = {},
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                ) { Text("Delete") }
+            }
+        }
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            // IMAGE
+            AsyncImage(
+                model = item.imageUrl ?: item.localImagePath,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            // NAME + CATEGORY
+            Text(
+                item.name,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                item.category,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            // DAYS LEFT
+            val daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), item.expiryDate)
+
+            Text("Added: ${item.addedDate}", style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(6.dp))
+            Text("Expiry: ${item.expiryDate}", style = MaterialTheme.typography.bodySmall)
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = when {
+                    daysLeft < 0 -> "Expired ${-daysLeft} day(s) ago"
+                    daysLeft == 0L -> "Expires today"
+                    else -> "$daysLeft day(s) remaining"
+                },
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun FoodDetailScreen_UIOnly_Preview() {
+    FoodDetailScreen_UIOnly(
+        item = FoodItem(
+            id = "123",
+            name = "Strawberries",
+            category = "Fruits",
+            addedDate = LocalDate.now().minusDays(1),
+            expiryDate = LocalDate.now().plusDays(3),
+            imageUrl = "https://images.unsplash.com/photo-1560807707-8cc77767d783",
+            localImagePath = null,
+            consumed = false,
+            userId = "preview"
+        )
+    )
 }

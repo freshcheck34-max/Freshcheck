@@ -27,4 +27,7 @@ interface FoodDao {
 
     @Query("DELETE FROM food_items WHERE userId = :userId")
     suspend fun deleteUserData(userId: String)
+
+    @Query("DELETE FROM food_items")
+    suspend fun clearAll()
 }
