@@ -2,6 +2,9 @@ package uk.ac.tees.mad.freshcheck.data.repository
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +18,8 @@ import uk.ac.tees.mad.freshcheck.domain.model.FoodItem
 import uk.ac.tees.mad.freshcheck.domain.model.toDomain
 import uk.ac.tees.mad.freshcheck.domain.model.toEntity
 import uk.ac.tees.mad.freshcheck.domain.repository.FoodRepository
+import uk.ac.tees.mad.freshcheck.worker.DeleteImageWorker
+import uk.ac.tees.mad.freshcheck.worker.UploadWorker
 import javax.inject.Inject
 
 class FoodRepositoryImpl @Inject constructor(
@@ -123,4 +128,43 @@ class FoodRepositoryImpl @Inject constructor(
             )
         )
     }
+
+    private fun scheduleUploadRetry(id: String) {
+        val request = OneTimeWorkRequestBuilder<UploadWorker>()
+            .setInputData(workDataOf("id" to id))
+            .build()
+
+        WorkManager.getInstance().enqueue(request)
+    }
+
+    private fun scheduleDeleteRetry(url: String) {
+        val request = OneTimeWorkRequestBuilder<DeleteImageWorker>()
+            .setInputData(workDataOf("url" to url))
+            .build()
+
+        WorkManager.getInstance().enqueue(request)
+    }
+
+    suspend fun forceSync(item: FoodItem) {
+        // Always update local Room DB
+        foodDao.insertFood(item.toEntity())
+
+        // Always overwrite Firestore with the updated state
+        firestore.collection("users")
+            .document(item.userId)
+            .collection("food_items")
+            .document(item.id)
+            .set(
+                mapOf(
+                    "name" to item.name,
+                    "category" to item.category,
+                    "addedDate" to item.addedDate.toString(),
+                    "expiryDate" to item.expiryDate.toString(),
+                    "imageUrl" to item.imageUrl,
+                    "consumed" to item.consumed
+                )
+            )
+    }
+
+
 }

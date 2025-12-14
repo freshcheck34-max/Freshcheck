@@ -30,4 +30,10 @@ interface FoodDao {
 
     @Query("DELETE FROM food_items")
     suspend fun clearAll()
+
+    @Query("SELECT * FROM food_items")
+    suspend fun getAllRaw(): List<FoodItemEntity>
+
+    @Query("SELECT * FROM food_items WHERE id = :id LIMIT 1")
+    suspend fun getItemByIdRaw(id: String): FoodItemEntity?
 }
