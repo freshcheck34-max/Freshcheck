@@ -30,6 +30,21 @@ class HomeViewModel @Inject constructor(
         syncFromCloud()
     }
 
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(loading = true) }
+
+            // re-sync remote → local
+            if (userId.isNotBlank()) {
+                repository.syncUserData(userId)
+            }
+
+            // reload local items
+            loadItems()
+        }
+    }
+
+
 
     fun loadItems() {
         viewModelScope.launch {

@@ -37,19 +37,24 @@ class FoodRepositoryImpl @Inject constructor(
     override suspend fun addOrUpdateItem(item: FoodItem) {
         var updated = item
 
+        foodDao.insertFood(updated.toEntity())
+
         // Upload only when needed
         if (!item.localImagePath.isNullOrBlank() && item.imageUrl.isNullOrBlank()) {
             val url = cloudinary.uploadImage(item.localImagePath)
             if (url.isNotBlank()) {
                 updated = updated.copy(imageUrl = url)
+                foodDao.insertFood(updated.toEntity())     // update local
+                syncSingle(updated)
+            } else {
+                // Failure — Queue a retry
+                scheduleUploadRetry(item.id)
             }
         }
-
-        // Save to Room
-        foodDao.insertFood(updated.toEntity())
-
-        // Sync to Firestore (best-effort)
-        syncSingle(updated)
+        else {
+            // No image or already uploaded
+            syncSingle(updated)
+        }
     }
 
     override suspend fun deleteItem(item: FoodItem) {

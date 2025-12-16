@@ -65,6 +65,19 @@ fun FoodDetailScreen(
     }
 
     val item = state.item
+    if (state.item == null && !state.loading && state.error == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "Item not found",
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+        return
+    }
+
 
     Scaffold(
         topBar = {

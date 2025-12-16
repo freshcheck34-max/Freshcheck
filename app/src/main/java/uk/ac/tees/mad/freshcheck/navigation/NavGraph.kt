@@ -74,7 +74,7 @@ fun NavGraph(
                 onOpenSettings = {
                     navController.navigate(Routes.SETTINGS)
                 },
-                onOpenItem =  { id ->
+                onOpenItem = { id ->
                     navController.navigate("detail_item/$id")
                 }
             )
@@ -148,9 +148,11 @@ fun NavGraph(
                     navController.navigate("edit_item/$id")
                 },
                 onDeleteRequested = { food ->
+                    detailViewModel.deleteItem()
                     navController.popBackStack()
                 },
                 onMarkConsumedRequested = { food ->
+                    detailViewModel.markConsumed()
                     navController.popBackStack()
                 }
             )
