@@ -146,7 +146,7 @@ fun CameraCaptureScreen(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(Color.Black)
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 50.dp)
                 .clickable {
@@ -229,7 +229,7 @@ fun CameraCaptureScreenPreviewContent(
                 .align(Alignment.TopCenter),
             contentAlignment = Alignment.Center
         ) {
-            Text("Camera Preview", color = Color.White)
+            Text("Camera Preview", color = Color.Black)
         }
 
         // Cancel button

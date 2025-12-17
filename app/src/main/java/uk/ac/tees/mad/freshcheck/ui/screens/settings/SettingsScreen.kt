@@ -98,7 +98,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.errorContainer)
+//                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.errorContainer)
             ) {
                 Text("Logout")
             }
@@ -171,7 +171,7 @@ fun SettingsScreenUIOnly() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.errorContainer)
+//                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.errorContainer)
             ) {
                 Text("Logout")
             }

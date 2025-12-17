@@ -15,10 +15,10 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object CloudinaryModule {
 
-    private const val CLOUD_NAME = "dmgwqrc5b"
+    private const val CLOUD_NAME = "dixaqizcb"
     private const val BASE = "https://api.cloudinary.com/v1_1/$CLOUD_NAME/"
-    private const val API_KEY = "176314437958328"
-    private const val API_SECRET = "Vd4ZdDCK8P7NidAmCy0N5VMndA8"
+    private const val API_KEY = "181412172339334"
+    private const val API_SECRET = "UjoNTuuTvuB-aOZ7h_l6gJE99yY"
 
     @Provides
     @Singleton

@@ -1,13 +1,14 @@
 {
   "project_info": {
-    "project_number": "681007400612",
-    "project_id": "freshcheck-e5067",
-    "storage_bucket": "freshcheck-e5067.firebasestorage.app"
+    "project_number": "76848675492",
+    "firebase_url": "https://freshcheck-ca50e-default-rtdb.firebaseio.com",
+    "project_id": "freshcheck-ca50e",
+    "storage_bucket": "freshcheck-ca50e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:681007400612:android:cf2ea22da6aa6f312bc831",
+        "mobilesdk_app_id": "1:76848675492:android:52f86d890c7abe065b0431",
         "android_client_info": {
           "package_name": "uk.ac.tees.mad.freshcheck"
         }
@@ -15,7 +16,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCXkKipyRr1gYUmBWE6gkfp5O85pIK2Y90"
+          "current_key": "AIzaSyDLiFxK5UXvU2nxPQrDwZ4aSI_35OfmlI4"
         }
       ],
       "services": {
